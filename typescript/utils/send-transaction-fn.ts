@@ -20,7 +20,10 @@ export const sendTransaction = async (
     }
 
     console.log(
-      `Transaction sent! \nHash: ${sendResponse.hash} \nwaiting for confirmation...`
+      `Transaction sent! \nHash: ${highlightText(
+        sendResponse.hash,
+        "blue"
+      )} \nwaiting for confirmation...`
     );
 
     const finalStatus = await rpc.pollTransaction(sendResponse.hash, {

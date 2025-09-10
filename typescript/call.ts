@@ -17,6 +17,7 @@ import { Buffer } from "buffer";
 import { getArgs } from "./utils/get-args.ts";
 import { Api } from "stellar-sdk/rpc";
 import { highlightText } from "./utils/highlight-text.ts";
+import { sendTransaction } from "./utils/send-transaction-fn.ts";
 
 const rpc = getRpc();
 const sourceKeys = Keypair.fromSecret(sourceAccountSk);
@@ -307,11 +308,14 @@ if (
     ${highlightText(typeName, "blue")}:
     ${highlightText(typeValue, "green")}
     `);
-  Deno.exit(0);
-}
-
-if (Api.isSimulationError(simulation)) {
+} else if (Api.isSimulationError(simulation)) {
   console.error("Simulation failed!");
   console.log("Error details:", simulation.error);
-  Deno.exit(1);
 }
+
+// Uncomment below to actually send the transaction to the network
+//
+// const preparedTx = await rpc.prepareTransaction(tx);
+// preparedTx.sign(sourceKeys);
+// console.log("Sending transaction...");
+// await sendTransaction(preparedTx);
