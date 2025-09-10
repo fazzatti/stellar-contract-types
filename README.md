@@ -47,32 +47,4 @@ The script under `./typescript/call.ts` will assemble and parametrize a transact
 
 The contract source lives at `contracts/types-harness/src/lib.rs`. Below are the exported contract functions you can invoke with `deno task call <function name>`.
 
-- void(env)
-- bool(env, bool) -> bool
-- u32(env, u32) -> u32
-- i32(env, i32) -> i32
-- u64(env, u64) -> u64
-- i64(env, i64) -> i64
-- timepoint(env, Timepoint) -> Timepoint
-- duration(env, Duration) -> Duration
-- u128(env, u128) -> u128
-- i128(env, i128) -> i128
-- u256(env, U256) -> U256
-- i256(env, I256) -> I256
-- bytes(env, Bytes) -> Bytes
-- string(env, String) -> String
-- symbol(env, Symbol) -> Symbol
-- address(env, Address) -> Address
-- vec_i128(env, Vec<i128>) -> Vec<i128>
-- vec_address(env, Vec<Address>) -> Vec<Address>
-- map_sym_i128(env, Map<Symbol, i128>) -> Map<Symbol, i128>
-- map_sym_vec_addr(env, Map<Symbol, Vec<Address>>) -> Map<Symbol, Vec<Address>>
-- any(env, Val) -> Val
-- vec_any(env, Vec<Val>) -> Vec<Val>
-- map_sym_any(env, Map<Symbol, Val>) -> Map<Symbol, Val>
-- user(env, User) -> User
-- choice(env, Choice) -> Choice
-- vec_user(env, Vec<User>) -> Vec<User>
-- map_addr_user(env, Map<Address, User>) -> Map<Address, User>
-
 Each function is a simple identity/echo for the specified type and is intended for testing how different SCVal types are encoded and returned.
