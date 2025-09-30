@@ -270,6 +270,50 @@ switch (functionName) {
     break;
   }
 
+  case "option_u32": {
+    const optionMode = getArgs(2, true)[1] || "some"; // "some" or "none"
+
+    functionArgs.push(
+      optionMode === "none"
+        ? xdr.ScVal.scvVoid()
+        : nativeToScVal(42, { type: "u32" })
+    );
+    break;
+  }
+
+  case "option_address": {
+    const optionMode = getArgs(2, true)[1] || "some"; // "some" or "none"
+    functionArgs.push(
+      optionMode === "none"
+        ? xdr.ScVal.scvVoid()
+        : nativeToScVal(sourceKeys.publicKey(), { type: "address" })
+    );
+    break;
+  }
+  case "option_user": {
+    const user = xdr.ScVal.scvMap([
+      new xdr.ScMapEntry({
+        key: xdr.ScVal.scvSymbol("id"),
+        val: nativeToScVal(1, { type: "u32" }),
+      }),
+      new xdr.ScMapEntry({
+        key: xdr.ScVal.scvSymbol("name"),
+        val: nativeToScVal("Fifo", { type: "string" }),
+      }),
+      new xdr.ScMapEntry({
+        key: xdr.ScVal.scvSymbol("tags"),
+        val: xdr.ScVal.scvVec([
+          nativeToScVal("dev", { type: "symbol" }),
+          nativeToScVal("sdk", { type: "symbol" }),
+        ]),
+      }),
+    ]);
+    const optionMode = getArgs(2, true)[1] || "some"; // "some" or "none"
+
+    functionArgs.push(optionMode === "none" ? xdr.ScVal.scvVoid() : user);
+    break;
+  }
+
   default:
     throw new Error(`Function ${functionName} not recognized.`);
 }
@@ -315,7 +359,7 @@ if (
 
 // Uncomment below to actually send the transaction to the network
 //
-// const preparedTx = await rpc.prepareTransaction(tx);
-// preparedTx.sign(sourceKeys);
-// console.log("Sending transaction...");
-// await sendTransaction(preparedTx);
+const preparedTx = await rpc.prepareTransaction(tx);
+preparedTx.sign(sourceKeys);
+console.log("Sending transaction...");
+await sendTransaction(preparedTx);

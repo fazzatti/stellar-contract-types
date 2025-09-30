@@ -114,4 +114,15 @@ impl TypesHarness {
     pub fn map_addr_user(_env: Env, m: Map<Address, User>) -> Map<Address, User> {
         m
     }
+
+    // Option types
+    pub fn option_u32(_env: Env, v: Option<u32>) -> Option<u32> {
+        v
+    }
+    pub fn option_address(_env: Env, v: Option<Address>) -> Option<Address> {
+        v
+    }
+    pub fn option_user(_env: Env, v: Option<User>) -> Option<User> {
+        v
+    }
 }
