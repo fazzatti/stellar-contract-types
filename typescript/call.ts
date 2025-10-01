@@ -3,6 +3,7 @@ import {
   humanizeEvents,
   Keypair,
   nativeToScVal,
+  scValToNative,
   Operation,
   TransactionBuilder,
   xdr,
@@ -19,6 +20,7 @@ import { getArgs } from "./utils/get-args.ts";
 import { Api } from "stellar-sdk/rpc";
 import { highlightText } from "./utils/highlight-text.ts";
 import { sendTransaction } from "./utils/send-transaction-fn.ts";
+import { formatScVal } from "./utils/output-parser.ts";
 
 const rpc = getRpc();
 const sourceKeys = Keypair.fromSecret(sourceAccountSk);
@@ -470,13 +472,12 @@ if (
   Api.isSimulationRestore(simulation)
 ) {
   const typeName = simulation.result?.retval.switch().name as string;
-  const typeValue = simulation.result?.retval.value()?.toString() as string;
+  const result = simulation.result?.retval;
 
-  console.error("Simulation successful!");
-  console.log(`Returned value:
-    ${highlightText(typeName, "blue")}:
-    ${highlightText(typeValue, "green")}
-    `);
+  console.log("Simulation successful!");
+  console.log(`Returned value: \n`);
+  console.log(`${highlightText(typeName, "blue")}: \n`);
+  console.log(highlightText(formatScVal(result, functionName), "green") + "\n");
 } else if (Api.isSimulationError(simulation)) {
   console.log("Simulation failed! Checking error details...");
 
