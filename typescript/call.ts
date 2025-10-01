@@ -23,6 +23,31 @@ import { sendTransaction } from "./utils/send-transaction-fn.ts";
 const rpc = getRpc();
 const sourceKeys = Keypair.fromSecret(sourceAccountSk);
 
+function createNestedType(currentDepth: number, width: number): xdr.ScVal {
+  const nestedArray = [];
+
+  if (currentDepth > 0) {
+    for (let i = 0; i < width; i++) {
+      nestedArray.push(createNestedType(currentDepth - 1, width));
+    }
+  }
+
+  return xdr.ScVal.scvMap([
+    new xdr.ScMapEntry({
+      key: xdr.ScVal.scvSymbol("depth"),
+      val: nativeToScVal(currentDepth, { type: "u32" }),
+    }),
+    new xdr.ScMapEntry({
+      key: xdr.ScVal.scvSymbol("nested"),
+      val: xdr.ScVal.scvVec(nestedArray),
+    }),
+    new xdr.ScMapEntry({
+      key: xdr.ScVal.scvSymbol("width"),
+      val: nativeToScVal(width, { type: "u32" }),
+    }),
+  ]);
+}
+
 const functionName = getArgs(1)[0];
 
 console.log("=============================================");
@@ -272,7 +297,22 @@ switch (functionName) {
   }
 
   case "option_u32": {
-    const optionMode = getArgs(2, true)[1] || "some"; // "some" or "none"
+    const args = getArgs(2, true);
+    const optionMode = args[1];
+
+    if (!optionMode) {
+      console.log("⚠️  Please provide option mode argument:");
+      console.log("   Usage: deno task call option_u32 <mode>");
+      console.log("   Example: deno task call option_u32 some");
+      console.log("   Example: deno task call option_u32 none");
+      console.log("   - mode: 'some' for Some(42) or 'none' for None");
+      Deno.exit(1);
+    }
+
+    if (optionMode !== "some" && optionMode !== "none") {
+      console.log("⚠️  Invalid option mode. Please use 'some' or 'none'");
+      Deno.exit(1);
+    }
 
     functionArgs.push(
       optionMode === "none"
@@ -283,7 +323,23 @@ switch (functionName) {
   }
 
   case "option_address": {
-    const optionMode = getArgs(2, true)[1] || "some"; // "some" or "none"
+    const args = getArgs(2, true);
+    const optionMode = args[1];
+
+    if (!optionMode) {
+      console.log("⚠️  Please provide option mode argument:");
+      console.log("   Usage: deno task call option_address <mode>");
+      console.log("   Example: deno task call option_address some");
+      console.log("   Example: deno task call option_address none");
+      console.log("   - mode: 'some' for Some(address) or 'none' for None");
+      Deno.exit(1);
+    }
+
+    if (optionMode !== "some" && optionMode !== "none") {
+      console.log("⚠️  Invalid option mode. Please use 'some' or 'none'");
+      Deno.exit(1);
+    }
+
     functionArgs.push(
       optionMode === "none"
         ? xdr.ScVal.scvVoid()
@@ -292,6 +348,23 @@ switch (functionName) {
     break;
   }
   case "option_user": {
+    const args = getArgs(2, true);
+    const optionMode = args[1];
+
+    if (!optionMode) {
+      console.log("⚠️  Please provide option mode argument:");
+      console.log("   Usage: deno task call option_user <mode>");
+      console.log("   Example: deno task call option_user some");
+      console.log("   Example: deno task call option_user none");
+      console.log("   - mode: 'some' for Some(User) or 'none' for None");
+      Deno.exit(1);
+    }
+
+    if (optionMode !== "some" && optionMode !== "none") {
+      console.log("⚠️  Invalid option mode. Please use 'some' or 'none'");
+      Deno.exit(1);
+    }
+
     const user = xdr.ScVal.scvMap([
       new xdr.ScMapEntry({
         key: xdr.ScVal.scvSymbol("id"),
@@ -309,9 +382,56 @@ switch (functionName) {
         ]),
       }),
     ]);
-    const optionMode = getArgs(2, true)[1] || "some"; // "some" or "none"
 
     functionArgs.push(optionMode === "none" ? xdr.ScVal.scvVoid() : user);
+    break;
+  }
+
+  case "nested_type": {
+    const args = getArgs(3, true);
+    const depth = args[1] ? parseInt(args[1]) : null;
+    const width = args[2] ? parseInt(args[2]) : null;
+
+    if (depth === null || width === null || isNaN(depth) || isNaN(width)) {
+      console.log("⚠️  Please provide depth and width arguments:");
+      console.log("   Usage: deno task call nested_type <depth> <width>");
+      console.log("   Example: deno task call nested_type 2 3");
+      console.log(
+        "   - depth: how deep the nesting goes (e.g., 2 = nested.nested)"
+      );
+      console.log(
+        "   - width: how many items in each array layer (e.g., 3 = 3 items per level)"
+      );
+      Deno.exit(1);
+    }
+
+    const nestedType = createNestedType(depth, width);
+    functionArgs.push(nestedType);
+    break;
+  }
+
+  case "flatten_nested_type": {
+    const args = getArgs(3, true);
+    const depth = args[1] ? parseInt(args[1]) : null;
+    const width = args[2] ? parseInt(args[2]) : null;
+
+    if (depth === null || width === null || isNaN(depth) || isNaN(width)) {
+      console.log("⚠️  Please provide depth and width arguments:");
+      console.log(
+        "   Usage: deno task call flatten_nested_type <depth> <width>"
+      );
+      console.log("   Example: deno task call flatten_nested_type 2 3");
+      console.log(
+        "   - depth: how deep the nesting goes (e.g., 2 = nested.nested)"
+      );
+      console.log(
+        "   - width: how many items in each array layer (e.g., 3 = 3 items per level)"
+      );
+      Deno.exit(1);
+    }
+
+    const nestedType = createNestedType(depth, width);
+    functionArgs.push(nestedType);
     break;
   }
 
@@ -382,8 +502,6 @@ if (
   Deno.exit(1);
 }
 
-// Uncomment below to actually send the transaction to the network
-//
 const preparedTx = await rpc.prepareTransaction(tx);
 preparedTx.sign(sourceKeys);
 console.log("Sending transaction...");

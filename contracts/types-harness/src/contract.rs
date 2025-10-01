@@ -14,6 +14,14 @@ pub struct User {
     pub tags: Vec<Symbol>,
 }
 
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NestedType {
+    pub depth: u32,
+    pub width: u32,
+    pub nested: Vec<NestedType>,
+}
+
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 #[repr(u32)]
@@ -133,8 +141,26 @@ impl TypesHarness {
         v
     }
 
+    // Nested UDT
+    pub fn nested_type(_env: Env, v: NestedType) -> NestedType {
+        v
+    }
+
+    pub fn flatten_nested_type(env: Env, v: NestedType) -> Vec<NestedType> {
+        let mut flat_vec = Vec::new(&env);
+        flatten_helper(&env, &v, &mut flat_vec);
+        flat_vec
+    }
+
     // Error handling
     pub fn fail(env: Env, should_fail: bool) {
         assert_with_error!(env, !should_fail, Error::FailedWithCustomError);
+    }
+}
+
+fn flatten_helper(env: &Env, v: &NestedType, acc: &mut Vec<NestedType>) {
+    acc.push_back(v.clone());
+    for child in v.nested.iter() {
+        flatten_helper(env, &child, acc);
     }
 }
