@@ -1,6 +1,6 @@
 use soroban_sdk::{
-    contract, contractimpl, contracttype, Address, Bytes, Duration, Env, Map, String, Symbol,
-    Timepoint, Val, Vec, I256, U256,
+    assert_with_error, contract, contracterror, contractimpl, contracttype, Address, Bytes,
+    Duration, Env, Map, String, Symbol, Timepoint, Val, Vec, I256, U256,
 };
 
 #[contract]
@@ -12,6 +12,13 @@ pub struct User {
     pub id: u32,
     pub name: String,
     pub tags: Vec<Symbol>,
+}
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    FailedWithCustomError = 123,
 }
 
 #[contracttype]
@@ -124,5 +131,10 @@ impl TypesHarness {
     }
     pub fn option_user(_env: Env, v: Option<User>) -> Option<User> {
         v
+    }
+
+    // Error handling
+    pub fn fail(env: Env, should_fail: bool) {
+        assert_with_error!(env, !should_fail, Error::FailedWithCustomError);
     }
 }

@@ -1,5 +1,6 @@
 import {
   Account,
+  humanizeEvents,
   Keypair,
   nativeToScVal,
   Operation,
@@ -314,6 +315,10 @@ switch (functionName) {
     break;
   }
 
+  case "fail":
+    functionArgs.push(xdr.ScVal.scvBool(true));
+    break;
+
   default:
     throw new Error(`Function ${functionName} not recognized.`);
 }
@@ -353,8 +358,28 @@ if (
     ${highlightText(typeValue, "green")}
     `);
 } else if (Api.isSimulationError(simulation)) {
-  console.error("Simulation failed!");
-  console.log("Error details:", simulation.error);
+  console.log("Simulation failed! Checking error details...");
+
+  // Check the inner contract events for more details
+  const events = humanizeEvents(simulation.events);
+  const contractEvents = events.filter(
+    (e) => e.contractId === contractId && e.topics[0] === "error"
+  );
+
+  // Look for the error code we set in the contract
+  // 123 = Error::FailedWithCustomError
+  // This is the expected error for the `fail` function
+  //  - If we find it, we consider the test successful
+  //  - If not, we consider it a failure
+  const contractError = contractEvents.find((e) => e.topics[1].code === 123);
+  if (contractError) {
+    console.log("Expected contract error detected:", contractError);
+    console.log(highlightText("handling it gracefully!\n", "blue"));
+    Deno.exit(0);
+  }
+
+  console.error(highlightText("No expected error found. Aborting! \n", "red"));
+  Deno.exit(1);
 }
 
 // Uncomment below to actually send the transaction to the network
