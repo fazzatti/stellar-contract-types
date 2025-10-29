@@ -50,6 +50,13 @@ export const formatScVal = (scval: any, functionName: string): string => {
         .join(" ")}`;
     }
 
+    case "bytes_n": {
+      const bytes = getBytesValue(scval);
+      return `bytes[${bytes.length}]: ${Array.from(bytes)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join(" ")}`;
+    }
+
     case "string":
       return `"${getStringValue(scval)}"`;
 

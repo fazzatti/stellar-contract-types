@@ -130,6 +130,15 @@ switch (functionName) {
     );
     break;
 
+  case "bytes_n": {
+    // Ensure the buffer is exactly 32 bytes by padding with zeros
+    const buffer = Buffer.alloc(32);
+    const data = Buffer.from("Bytes N<32> example");
+    data.copy(buffer);
+    functionArgs.push(xdr.ScVal.scvBytes(buffer));
+    break;
+  }
+
   case "string":
     functionArgs.push(nativeToScVal("hello", { type: "string" }));
     break;
@@ -499,7 +508,8 @@ if (
     Deno.exit(0);
   }
 
-  console.error(highlightText("No expected error found. Aborting! \n", "red"));
+  console.error(highlightText("Unexpected error found. Aborting! \n", "red"));
+  console.error("Error details:", simulation.error);
   Deno.exit(1);
 }
 
