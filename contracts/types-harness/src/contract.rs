@@ -1,5 +1,5 @@
 use soroban_sdk::{
-    assert_with_error, contract, contracterror, contractimpl, contracttype, Address, Bytes,
+    assert_with_error, contract, contracterror, contractimpl, contracttype, Address, Bytes, BytesN,
     Duration, Env, Map, String, Symbol, Timepoint, Val, Vec, I256, U256,
 };
 
@@ -79,6 +79,9 @@ impl TypesHarness {
 
     // Bytes, strings, symbols, address
     pub fn bytes(_env: Env, v: Bytes) -> Bytes {
+        v
+    }
+    pub fn bytes_n(_env: Env, v: BytesN<32>) -> BytesN<32> {
         v
     }
     pub fn string(_env: Env, v: String) -> String {
